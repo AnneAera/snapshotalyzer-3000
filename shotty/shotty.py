@@ -1,4 +1,5 @@
 import boto3
+import botocore
 import sys
 import click
 
@@ -126,9 +127,17 @@ def list_instances(project):
 @click.option('--project', default=None, help='Only instances for project')
 def start_instance(project):
     "Start EC2 instances"
+
     instances = filter_instances(project)
+
     for i in instances:
         print("Starting {0}...".format(i.id))
+        try:
+            i.start()
+        except botocore.exceptions.ClientError as e:
+            print(" Could not start {0}. ".format(i.id) + str(e))
+            continue
+
         i.start()
 
     return
@@ -140,7 +149,11 @@ def stop_instance(project):
     instances = filter_instances(project)
     for i in instances:
         print("Stopping {0}...".format(i.id))
-        i.stop()
+        try:
+            i.stop()
+        except botocore.exceptions.ClientError as e:
+            print(" Could not stop {0}. ".format(i.id) + str(e))
+            continue
 
     return
 
